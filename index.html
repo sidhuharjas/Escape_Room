@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackout at Northfield Academy | Network Security Escape Room</title>
+<style>
+:root{--bg:#06080f;--panel:#0e1320;--line:#1f2940;--ink:#f3f6ff;--dim:#8d99b8;--red:#ff2d55;--ice:#7fd6ff;--ok:#3ddc97}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"SF Pro Display",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5;overflow-x:hidden}
+:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+.bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:14px 28px;background:rgba(6,8,15,.65);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);font-size:14px}
+.bar b{letter-spacing:.02em}
+.keys{display:flex;gap:8px}
+.k{width:30px;height:34px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-weight:800;color:var(--dim);transition:.5s}
+.k.on{border-color:var(--ok);color:var(--ok);background:rgba(61,220,151,.12);transform:translateY(-3px)}
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--red);z-index:60;width:0}
+/* hero */
+.hero{height:100vh;display:grid;place-items:center;text-align:center;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 120%,rgba(255,45,85,.28),transparent 60%)}
+.hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px);pointer-events:none}
+.hero h1{font-size:clamp(64px,17vw,230px);font-weight:900;letter-spacing:-.05em;line-height:.9;will-change:transform,opacity;animation:flick 5s infinite}
+.hero p{font-size:clamp(18px,2.4vw,28px);color:var(--dim);margin-top:22px;will-change:opacity}
+.hero .cue{position:absolute;bottom:34px;left:50%;translate:-50% 0;color:var(--dim);font-size:14px;animation:bob 2s infinite}
+@keyframes bob{50%{transform:translateY(8px)}}
+@keyframes flick{0%,92%,100%{opacity:1}93%{opacity:.35}94%{opacity:1}96%{opacity:.5}97%{opacity:1}}
+/* story */
+.story{height:320vh;position:relative}
+.story .stick{position:sticky;top:0;height:100vh;display:grid;place-items:center;padding:0 8vw}
+.story p{font-size:clamp(28px,5vw,64px);font-weight:800;letter-spacing:-.03em;line-height:1.12;max-width:1100px}
+.w{opacity:.14;transition:opacity .25s,color .25s}
+.w.lit{opacity:1}
+.w.hot.lit{color:var(--red)}
+/* rooms */
+.room{min-height:100vh;padding:14vh 6vw;max-width:1200px;margin:auto;display:grid;gap:44px}
+.room h2{font-size:clamp(40px,7vw,96px);font-weight:900;letter-spacing:-.045em;line-height:1}
+.room .lead{color:var(--dim);font-size:clamp(17px,2vw,22px);max-width:640px;margin-top:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(18px,3vw,36px);box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.sl{opacity:0;transform:translateX(-90px);transition:1s cubic-bezier(.16,1,.3,1)}
+.sr{opacity:0;transform:translateX(90px);transition:1s cubic-bezier(.16,1,.3,1)}
+.sl.in,.sr.in{opacity:1;transform:none}
+.mono{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:14px}
+.rule,.log{display:block;width:100%;text-align:left;background:#0a0f1b;border:1px solid var(--line);border-radius:12px;color:var(--ink);padding:13px 16px;margin-bottom:9px;cursor:pointer;transition:.2s}
+.rule:hover{border-color:var(--ice);transform:translateX(6px)}
+.rule.bad{border-color:var(--red);background:rgba(255,45,85,.12)}
+.rule.good{border-color:var(--ok);background:rgba(61,220,151,.12)}
+.log{cursor:default}
+.log.f{color:#ffb4c1}.log.s{color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;margin-bottom:11px}
+select,input[type=text]{width:100%;background:#0a0f1b;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font:inherit}
+.chk{display:flex;gap:12px;align-items:center;padding:13px 16px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px;cursor:pointer;background:#0a0f1b}
+.chk input{accent-color:var(--red);width:19px;height:19px}
+.btn{margin-top:14px;background:var(--ink);color:#000;border:0;border-radius:999px;padding:13px 28px;font:inherit;font-weight:700;cursor:pointer;transition:.2s}
+.btn:hover{transform:scale(1.05);background:var(--ice)}
+.msg{margin-top:14px;min-height:24px;font-weight:600}
+.msg.no{color:var(--red)}.msg.yes{color:var(--ok)}
+.shake{animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.net{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.node{border:1px dashed var(--red);border-radius:12px;padding:12px;text-align:center;font-size:14px;color:#ffb4c1}
+.flat{text-align:center;color:var(--red);font-weight:700;margin-bottom:14px}
+.reward{margin-top:16px;display:none;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;background:rgba(61,220,151,.1);border:1px solid var(--ok)}
+.reward.show{display:flex;animation:pop .6s}
+.reward big{font-size:44px;font-weight:900;color:var(--ok)}
+@keyframes pop{from{transform:scale(.7);opacity:0}}
+/* finale */
+.finale{min-height:100vh;display:grid;place-items:center;text-align:center;padding:14vh 6vw;background:radial-gradient(ellipse at 50% 100%,rgba(127,214,255,.18),transparent 60%)}
+.finale h2{font-size:clamp(44px,9vw,130px);font-weight:900;letter-spacing:-.05em;line-height:.95}
+.finale .panel{max-width:520px;margin:34px auto 0}
+.finale input{text-align:center;font-size:28px;letter-spacing:.5em;font-weight:800}
+.win{display:none}
+.win.show{display:block;animation:pop 1s}
+.lock{transition:.8s}
+.lock.off{display:none}
+footer{text-align:center;color:var(--dim);padding:40px;font-size:13px}
+@media(max-width:700px){.row{grid-template-columns:1fr}.bar{padding:12px 14px}.k{width:24px}.sl,.sr{transform:translateY(50px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.sl,.sr{opacity:1;transform:none}.w{opacity:1}}
+</style>
+</head>
+<body>
+<div class="prog" id="prog"></div>
+<div class="bar"><b>Northfield Academy IT</b><div class="keys" id="keys" aria-label="Keys found"><span class="k">?</span><span class="k">?</span><span class="k">?</span><span class="k">?</span><span class="k">?</span></div></div>
+
+<section class="hero">
+  <div><h1 id="h1">BLACKOUT</h1><p id="hp">The lights went out. The hackers are still in.</p></div>
+  <div class="cue">Scroll to begin</div>
+</section>
+
+<section class="story" id="story"><div class="stick"><p id="storyText"></p></div></section>
+
+<section class="room" id="r1">
+  <div class="sl"><h2>The firewall has a hole.</h2><p class="lead">One of these six rules lets anyone on the internet reach the grade database. Click the rule that accidentally allows malicious traffic.</p></div>
+  <div class="panel sr">
+    <button class="rule mono" data-i="0">ALLOW &nbsp;10.0.2.0/24 &rarr; WEB-SERVER &nbsp;TCP 443 (HTTPS)</button>
+    <button class="rule mono" data-i="1">ALLOW &nbsp;STAFF-VLAN &rarr; MAIL-SERVER &nbsp;TCP 587 (SMTP)</button>
+    <button class="rule mono" data-i="2">DENY &nbsp;&nbsp;GUEST-WIFI &rarr; 10.0.0.0/8 &nbsp;ANY</button>
+    <button class="rule mono" data-i="3">ALLOW &nbsp;ANY &rarr; GRADE-DB &nbsp;TCP 23 (Telnet)</button>
+    <button class="rule mono" data-i="4">ALLOW &nbsp;ADMIN-PC &rarr; GRADE-DB &nbsp;TCP 22 (SSH)</button>
+    <button class="rule mono" data-i="5">DENY &nbsp;&nbsp;ANY &rarr; ANY &nbsp;ANY</button>
+    <div class="msg" id="m1" role="status"></div>
+    <div class="reward" id="w1"><big>G</big><span>Key found. Rule 4 allowed unencrypted Telnet from anywhere. Firewalls should allow only what is needed and deny everything else.</span></div>
+  </div>
+</section>
+
+<section class="room" id="r2">
+  <div class="sr"><h2>One network. Zero walls.</h2><p class="lead">Everything is plugged into the same flat network, so one infected device can reach all the others. Put each device in the right segment (VLAN).</p></div>
+  <div class="panel sl">
+    <div class="flat">FLAT NETWORK: every device can talk to every device</div>
+    <div class="net"><div class="node">Guest phones</div><div class="node">Student laptops</div><div class="node">Grade database</div><div class="node">Security cameras</div><div class="node">Teacher PCs</div></div>
+    <div id="seg"></div>
+    <button class="btn" id="b2">Apply segmentation</button>
+    <div class="msg" id="m2" role="status"></div>
+    <div class="reward" id="w2"><big>U</big><span>Key found. Segmentation limits how far an attacker can move. A compromised guest phone should never reach the grade database.</span></div>
+  </div>
+</section>
+
+<section class="room" id="r3">
+  <div class="sl"><h2>Read the logs. Find the intruder.</h2><p class="lead">The attacker guessed a password, got in, then copied student data. Which IP address did all of that? Type it in.</p></div>
+  <div class="panel sr">
+    <div class="log f mono">02:11:03 &nbsp;FAIL &nbsp;login user=admin &nbsp;src=185.220.101.47</div>
+    <div class="log s mono">02:11:04 &nbsp;OK &nbsp;&nbsp;&nbsp;login user=j.park &nbsp;src=10.0.3.18</div>
+    <div class="log f mono">02:11:07 &nbsp;FAIL &nbsp;login user=admin &nbsp;src=185.220.101.47</div>
+    <div class="log f mono">02:11:09 &nbsp;FAIL &nbsp;login user=admin &nbsp;src=185.220.101.47</div>
+    <div class="log f mono">02:11:12 &nbsp;OK &nbsp;&nbsp;&nbsp;login user=admin &nbsp;src=185.220.101.47</div>
+    <div class="log s mono">02:11:40 &nbsp;OK &nbsp;&nbsp;&nbsp;login user=t.nguyen &nbsp;src=10.0.3.22</div>
+    <div class="log f mono">02:12:01 &nbsp;WARN &nbsp;grades.csv (48,201 rows) sent to 185.220.101.47</div>
+    <div class="log s mono">02:12:30 &nbsp;OK &nbsp;&nbsp;&nbsp;login user=m.ortiz &nbsp;src=10.0.3.51</div>
+    <input type="text" id="ip" placeholder="Attacker IP address" aria-label="Attacker IP address" style="margin-top:10px">
+    <button class="btn" id="b3">Trace it</button>
+    <div class="msg" id="m3" role="status"></div>
+    <div class="reward" id="w3"><big>A</big><span>Key found. Many failed logins followed by a success, then a large data transfer, is a classic brute-force and exfiltration pattern.</span></div>
+  </div>
+</section>
+
+<section class="room" id="r4">
+  <div class="sr"><h2>The Wi-Fi is wide open.</h2><p class="lead">Check every setting that is insecure on the school router. Leave the safe ones alone.</p></div>
+  <div class="panel sl">
+    <label class="chk"><input type="checkbox" data-bad="1"> Encryption set to WEP</label>
+    <label class="chk"><input type="checkbox" data-bad="0"> Staff network uses WPA3</label>
+    <label class="chk"><input type="checkbox" data-bad="1"> WPS PIN setup is enabled</label>
+    <label class="chk"><input type="checkbox" data-bad="1"> Router admin password is &ldquo;admin&rdquo;</label>
+    <label class="chk"><input type="checkbox" data-bad="0"> Firmware updates install automatically</label>
+    <label class="chk"><input type="checkbox" data-bad="1"> Guest Wi-Fi shares the staff network</label>
+    <button class="btn" id="b4">Lock down the router</button>
+    <div class="msg" id="m4" role="status"></div>
+    <div class="reward" id="w4"><big>R</big><span>Key found. Fixes: WPA3, disable WPS, a strong unique admin password, and a separate guest network.</span></div>
+  </div>
+</section>
+
+<section class="room" id="r5">
+  <div class="sl"><h2>The people problem.</h2><p class="lead">Bad policies let attackers in without any hacking. Pick the best fix for each flaw.</p></div>
+  <div class="panel sr">
+    <div class="row"><span>Everyone in IT shares one admin account.</span>
+      <select data-a="b"><option value="">Choose a fix</option><option value="a">Make the password longer</option><option value="b">Individual accounts with least privilege</option><option value="c">Change the password every day</option></select></div>
+    <div class="row"><span>Staff passwords are &ldquo;Password123&rdquo; and never expire.</span>
+      <select data-a="c"><option value="">Choose a fix</option><option value="a">Block all logins at night</option><option value="b">Add a special character</option><option value="c">Long passphrases plus multi-factor login</option></select></div>
+    <div class="row"><span>A former employee&rsquo;s account is still active.</span>
+      <select data-a="a"><option value="">Choose a fix</option><option value="a">Offboarding that disables accounts right away</option><option value="b">Hide the login page</option><option value="c">Ask them not to log in</option></select></div>
+    <button class="btn" id="b5">Update the policy</button>
+    <div class="msg" id="m5" role="status"></div>
+    <div class="reward" id="w5"><big>D</big><span>Key found. Least privilege, strong authentication, and fast offboarding close the gaps people create.</span></div>
+  </div>
+</section>
+
+<section class="finale">
+  <div>
+    <h2 id="ft">Five keys.<br>One passphrase.</h2>
+    <div class="panel lock" id="lock">
+      <p style="color:var(--dim);margin-bottom:14px" id="fp">Find all five keys to unlock the kill switch.</p>
+      <input type="text" id="code" maxlength="5" placeholder="_____" aria-label="Passphrase" disabled>
+      <button class="btn" id="bf" disabled>Kill the backdoor</button>
+      <div class="msg" id="mf" role="status"></div>
+    </div>
+    <div class="win" id="win"><h2 style="color:var(--ok)">You escaped.</h2><p class="lead" style="margin:18px auto 0;color:var(--dim);max-width:560px">The backdoor is closed, the lights are back on, and Northfield Academy&rsquo;s data stayed home. You used firewalls, segmentation, log analysis, wireless security, and access policies. That is defense in depth.</p></div>
+  </div>
+</section>
+<footer>Network Security Escape Room &middot; Made for the Network Security unit</footer>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const solved=new Set(),letters=['G','U','A','R','D'];
+function solve(n){
+  if(solved.has(n))return;solved.add(n);
+  $('#w'+n).classList.add('show');
+  const k=$$('.k')[n-1];k.textContent=letters[n-1];k.classList.add('on');
+  if(solved.size===5){
+    $('#code').disabled=false;$('#bf').disabled=false;
+    $('#fp').textContent='All keys found. Enter the five letters in order.';
+  }
+}
+function say(id,t,ok){const m=$(id);m.textContent=t;m.className='msg '+(ok?'yes':'no')}
+function bad(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+
+/* story words */
+const story="At 2:11 a.m. the hallway lights died. The school network is down. A hacker group called NULLPOINT planted a backdoor and is copying student records right now. The IT team is locked out. You have five keys to find and one passphrase to stop them.";
+const hot=['NULLPOINT','backdoor','locked','out.','copying'];
+$('#storyText').innerHTML=story.split(' ').map(w=>`<span class="w${hot.some(h=>w.includes(h))?' hot':''}">${w}</span>`).join(' ');
+const words=$$('.w'),st=$('#story');
+
+/* scroll effects */
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function onScroll(){
+  const y=scrollY,vh=innerHeight;
+  $('#prog').style.width=(y/(document.body.scrollHeight-vh)*100)+'%';
+  if(!reduce){
+    const p=Math.min(y/vh,1);
+    $('#h1').style.transform=`scale(${1+p*.9})`;$('#h1').style.opacity=1-p*1.1;
+    $('#hp').style.opacity=1-p*2.2;
+    const r=st.getBoundingClientRect(),q=Math.min(Math.max(-r.top/(r.height-vh),0),1);
+    const n=Math.floor(q*1.15*words.length);
+    words.forEach((w,i)=>w.classList.toggle('lit',i<n));
+  }
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+const io=new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target)}}),{threshold:.2});
+$$('.sl,.sr').forEach(el=>io.observe(el));
+
+/* 1 firewall */
+$$('.rule').forEach(b=>b.onclick=()=>{
+  if(solved.has(1))return;
+  if(b.dataset.i==='3'){b.classList.add('good');say('#m1','Correct. That rule exposes the database to the whole internet.',1);solve(1)}
+  else{b.classList.add('bad');say('#m1','That rule is fine. Look for traffic that is too open or uses an insecure protocol.',0);bad(b)}
+});
+
+/* 2 segmentation */
+const devs=[['Guest phones','guest'],['Student laptops','student'],['Grade database','server'],['Security cameras','iot'],['Teacher PCs','staff']];
+const vl=[['','Choose a VLAN'],['guest','Guest VLAN'],['student','Student VLAN'],['staff','Staff VLAN'],['server','Server VLAN'],['iot','IoT VLAN']];
+$('#seg').innerHTML=devs.map(d=>`<div class="row"><span>${d[0]}</span><select data-a="${d[1]}">${vl.map(v=>`<option value="${v[0]}">${v[1]}</option>`).join('')}</select></div>`).join('');
+function checkSel(sc,id,n,good,badMsg){
+  $(id).onclick=()=>{
+    const s=$$(sc+' select');
+    if(s.some(x=>!x.value)){say('#m'+n,'Answer every item first.',0);return}
+    if(s.every(x=>x.value===x.dataset.a)){say('#m'+n,good,1);solve(n)}
+    else{say('#m'+n,badMsg,0);bad($(id).parentElement)}
+  };
+}
+checkSel('#r2','#b2',2,'Segmented. Each group is isolated.','Not quite. Group devices by who uses them and how much they must be trusted. Servers and cameras need their own segments.');
+
+/* 3 logs */
+$('#b3').onclick=()=>{
+  const v=$('#ip').value.trim();
+  if(v==='185.220.101.47'){say('#m3','Traced. That address failed three logins, then got in.',1);solve(3)}
+  else{say('#m3','Wrong IP. Look for the address with repeated failures, then a success.',0);bad($('#ip'))}
+};
+
+/* 4 wifi */
+$('#b4').onclick=()=>{
+  const c=$$('#r4 input');
+  if(c.every(x=>(x.checked?'1':'0')===x.dataset.bad)){say('#m4','Router secured.',1);solve(4)}
+  else{say('#m4','Not yet. Select every insecure setting and none of the safe ones.',0);bad($('#r4 .panel'))}
+};
+
+/* 5 policy */
+checkSel('#r5','#b5',5,'Policy updated.','At least one fix is off. Think least privilege, strong authentication, and offboarding.');
+
+/* finale */
+$('#bf').onclick=()=>{
+  if($('#code').value.toUpperCase()==='GUARD'){
+    $('#lock').classList.add('off');$('#ft').textContent='Backdoor closed.';$('#win').classList.add('show');
+  }else{say('#mf','Wrong passphrase. Read the keys in the order you found them.',0);bad($('#lock'))}
+};
+$('#code').addEventListener('keydown',e=>{if(e.key==='Enter')$('#bf').click()});
+</script>
+</body>
+</html>
